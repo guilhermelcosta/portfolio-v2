@@ -3,7 +3,7 @@ name: Update Resume
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - 'resumes/**'
 
