@@ -1,4 +1,4 @@
-name: Update Resume
+name: Update Resume and Deploy
 
 on:
   push:
@@ -9,13 +9,18 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
-  group: resume-update
+  group: resume-update-and-deploy
   cancel-in-progress: false
 
 jobs:
-  update:
+  update-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -47,3 +52,24 @@ jobs:
             git commit -m "Update resume from latest rev"
             git push
           fi
+
+      - name: Checkout again (to get latest commit)
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
