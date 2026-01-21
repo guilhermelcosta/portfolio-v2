@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 6
+=======
+2
+>>>>>>> ea2423d (Improve resume parsing to preserve all information and formatting)
