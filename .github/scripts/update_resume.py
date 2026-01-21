@@ -102,6 +102,9 @@ def generate_markdown(parsed_data):
         i = section_indices['Experience'] + 1
         end = section_indices['Education']
         
+        current_company = None
+        current_location = None
+        
         while i < end:
             line = lines[i].strip()
             
@@ -110,54 +113,81 @@ def generate_markdown(parsed_data):
                 i += 1
                 continue
             
-            # Company name (non-empty, non-bullet line)
-            if not line.startswith('•'):
-                company = line
+            # Check if it's a bullet point - skip for now
+            if line.startswith('•'):
+                i += 1
+                continue
+            
+            # Try to detect if this is a company name or just a position
+            # Company names are usually followed by location (Remote, City) or empty line then location
+            # Positions are followed by dates
+            is_company = False
+            temp_i = i + 1
+            
+            # Skip empty lines to peek ahead
+            while temp_i < end and not lines[temp_i].strip():
+                temp_i += 1
+            
+            next_line = lines[temp_i].strip() if temp_i < end else ""
+            
+            # If next non-empty line is a location indicator, this is a company
+            if next_line in ['Remote', 'Belo Horizonte, MG'] or next_line.endswith(', MG'):
+                is_company = True
+            # If next line is NOT a date pattern and current line doesn't look like a position
+            elif not re.match(r'\d{2}/\d{4}', next_line):
+                # Check if the line after next is a date (position pattern)
+                temp_i2 = temp_i + 1
+                while temp_i2 < end and not lines[temp_i2].strip():
+                    temp_i2 += 1
+                next_next_line = lines[temp_i2].strip() if temp_i2 < end else ""
+                if re.match(r'\d{2}/\d{4}', next_next_line):
+                    # Pattern: Company -> Position -> Date
+                    is_company = True
+            
+            if is_company:
+                # This is a new company
+                current_company = line
                 i += 1
                 
                 # Skip empty lines
                 while i < end and not lines[i].strip():
                     i += 1
                 
-                # Location
-                location = lines[i].strip() if i < end else ""
-                if location and not location.startswith('•'):
+                # Get location
+                if i < end and (lines[i].strip() in ['Remote', 'Belo Horizonte, MG'] or lines[i].strip().endswith(', MG')):
+                    current_location = lines[i].strip()
                     i += 1
                 else:
-                    location = ""
-                
-                # Skip empty lines
-                while i < end and not lines[i].strip():
-                    i += 1
-                
-                # Position
-                position = lines[i].strip() if i < end and not lines[i].strip().startswith('•') else ""
-                if position:
-                    i += 1
-                else:
-                    position = ""
-                
-                # Skip empty lines
-                while i < end and not lines[i].strip():
-                    i += 1
-                
-                # Dates
-                dates = lines[i].strip() if i < end and re.search(r'\d{2}/\d{4}', lines[i]) else ""
-                if dates:
-                    i += 1
+                    current_location = ""
                 
                 # Write company header
-                md += f"### {company}"
-                if location:
-                    md += f" | {location}"
+                md += f"### {current_company}"
+                if current_location:
+                    md += f" | {current_location}"
                 md += "\n"
-                if position:
-                    md += f"**{position}**"
-                    if dates:
-                        md += f" | {dates}"
-                    md += "\n\n"
                 
-                # Collect bullet points (may span multiple lines)
+            else:
+                # This is a position (either first in company or additional)
+                position = line
+                i += 1
+                
+                # Skip empty lines
+                while i < end and not lines[i].strip():
+                    i += 1
+                
+                # Get dates
+                dates = ""
+                if i < end and re.match(r'\d{2}/\d{4}', lines[i].strip()):
+                    dates = lines[i].strip()
+                    i += 1
+                
+                # Write position
+                md += f"**{position}**"
+                if dates:
+                    md += f" | {dates}"
+                md += "\n\n"
+                
+                # Collect bullet points for this position
                 while i < end:
                     # Skip empty lines
                     while i < end and not lines[i].strip():
@@ -181,23 +211,26 @@ def generate_markdown(parsed_data):
                             text_line = lines[i].strip()
                             if not text_line or text_line.startswith('•'):
                                 break
-                            # Check if it's the next company/position (all caps or specific pattern)
+                            # Stop if we hit what looks like next position/company
+                            # Check if it's followed by a date or location
                             if text_line and not text_line.endswith(';') and not text_line.endswith('.') and not text_line.endswith(','):
-                                # Might be next section, check context
-                                if i + 1 < end and lines[i + 1].strip() in ['Remote', 'Belo Horizonte, MG', ''] or re.match(r'\d{2}/\d{4}', lines[i + 2].strip() if i + 2 < end else ''):
-                                    break
+                                peek_i = i + 1
+                                while peek_i < end and not lines[peek_i].strip():
+                                    peek_i += 1
+                                if peek_i < end:
+                                    peek_line = lines[peek_i].strip()
+                                    if re.match(r'\d{2}/\d{4}', peek_line) or peek_line in ['Remote', 'Belo Horizonte, MG']:
+                                        break
                             bullet_text.append(text_line)
                             i += 1
                         
                         if bullet_text:
                             md += f"- {' '.join(bullet_text)}\n"
                     else:
-                        # Not a bullet, might be next company
+                        # Not a bullet, check if it's next position or company
                         break
                 
                 md += "\n"
-            else:
-                i += 1
     
     # Education section
     if 'Education' in section_indices and 'Licenses & Certificates' in section_indices:
