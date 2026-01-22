@@ -1,7 +1,7 @@
 # Guilherme Lage da Costa
 **Software Engineer**
 
-[LinkedIn](https://linkedin.com/in/guilhermeldcosta) | [GitHub](https://github.com/guilhermeldcosta) | guilhermeldcosta@gmail.com | +55 (31) 9 9169-8722
+[LinkedIn](https://linkedin.com/in/guilhermeldcosta) | [GitHub](https://github.com/guilhermelcosta) | guilhermeldcosta@gmail.com | +55 (31) 9 9169-8722
 
 ## Skills
 Java \| Spring Boot \| Spring Batch \| Python \| AWS \| AWS Lambda \| AWS SQS \| AWS SNS \| AWS Glue \| Spark \| PySpark \| Amazon DocumentDB \| SQL \| NoSQL \| AWS S3 \| Git \| CI/CD \| Jenkins \| JUnit \| Datadog \| Terraform \| Linux \| Docker \| Angular \| TypeScript \| Microservices \| Frontend \| Backend \| Full-stack \| English, Portuguese - Both at a professional level or above.
