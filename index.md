@@ -22,7 +22,7 @@ Java | Spring Boot | Spring Batch | Python | AWS | AWS Lambda | AWS SQS | AWS SN
 - Migrated legacy systems from Java 6 to new architectures in Java 17, upgrading systems that handled 200 transactions per day to over 2,000 per minute;
 - Optimized SQL and PL/SQL queries, reducing database load by 50% and decreasing average execution time from 14 hours to 7 hours.
 
-**Full-stack developer intern** | 11/2023 - 12/2024
+**Full-stack developer intern** \| 11/2023 - 12/2024
 
 - Collaborated on implementing a secure microservices infrastructure in AWS, contributing to API Gateway integration and centralized logging configuration.
 
