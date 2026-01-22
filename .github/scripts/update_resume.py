@@ -100,7 +100,10 @@ def generate_markdown(parsed_data):
             line = lines[i].strip()
             if line:
                 skills_lines.append(line)
-        md += ' '.join(skills_lines) + "\n\n"
+        skills_text = ' '.join(skills_lines)
+        # Escape pipes in skills
+        skills_text = skills_text.replace('|', r'\|')
+        md += skills_text + "\n\n"
     
     # Experience section
     if 'Experience' in section_indices and 'Education' in section_indices:
@@ -169,7 +172,7 @@ def generate_markdown(parsed_data):
                 # Write company header
                 md += f"### {current_company}"
                 if current_location:
-                    md += f" | {current_location}"
+                    md += r" \| " + current_location
                 md += "\n"
                 
             else:
@@ -190,7 +193,7 @@ def generate_markdown(parsed_data):
                 # Write position
                 md += f"**{position}**"
                 if dates:
-                    md += f" | {dates}"
+                    md += " \\| " + dates
                 md += "\n\n"
                 
                 # Collect bullet points for this position
@@ -262,7 +265,7 @@ def generate_markdown(parsed_data):
         if institution:
             md += f"### {institution}"
             if location:
-                md += f" | {location}"
+                md += " \\| " + location
             md += "\n\n"
         
         # Collect degrees
@@ -288,7 +291,7 @@ def generate_markdown(parsed_data):
                 
                 md += f"- **{degree}**"
                 if dates:
-                    md += f" | {dates}"
+                    md += " \\| " + dates
                 md += "\n"
             else:
                 i += 1
@@ -324,7 +327,7 @@ def generate_markdown(parsed_data):
                 
                 md += f"- **{cert_name}**"
                 if issuer_date:
-                    md += f" | {issuer_date}"
+                    md += " \\| " + issuer_date
                 md += "\n"
             else:
                 i += 1
