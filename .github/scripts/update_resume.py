@@ -3,6 +3,11 @@ import re
 import subprocess
 from pathlib import Path
 
+# Constants
+RESUMES_DIR = 'resumes'
+OUTPUT_FILE = 'index.md'
+TRACKING_FILE = 'last_processed.txt'
+
 def get_latest_rev(resumes_dir):
     pdf_files = list(Path(resumes_dir).glob("*.pdf"))
     revs = []
@@ -12,9 +17,10 @@ def get_latest_rev(resumes_dir):
             revs.append(int(match.group(1)))
     return max(revs) if revs else 0
 
-def get_last_processed():
+def get_last_processed_version():
+    """Get the last processed resume version from tracking file."""
     try:
-        with open('last_processed.txt', 'r') as f:
+        with open(TRACKING_FILE, 'r') as f:
             return int(f.read().strip())
     except FileNotFoundError:
         return 0
@@ -324,6 +330,29 @@ def generate_markdown(parsed_data):
                 i += 1
     
     return md
+
+
+def find_latest_resume_version(resumes_dir):
+    """Find the latest resume version and its filename."""
+    pdf_files = list(Path(resumes_dir).glob("*.pdf"))
+    latest_version = 0
+    latest_filename = None
+    
+    for pdf_file in pdf_files:
+        match = re.search(r'rev-(\d+)', pdf_file.name)
+        if match:
+            version = int(match.group(1))
+            if version > latest_version:
+                latest_version = version
+                latest_filename = pdf_file.name
+    
+    return latest_filename, latest_version
+
+
+def save_processed_version(version):
+    """Save the processed version to tracking file."""
+    with open(TRACKING_FILE, 'w') as f:
+        f.write(str(version))
 
 
 def main():
