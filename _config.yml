@@ -1,7 +1,9 @@
 title: Guilherme Costa - Portfolio
 description: Software Engineer Portfolio
-theme: jekyll-theme-slate
+# theme: jekyll-theme-slate
 
+# Temas disponíveis (descomente para usar):
+#  jekyll-theme-midnight - minimalista e escuro
 #  jekyll-theme-hacker - tema terminal/hacker (verde sobre preto)
 #  jekyll-theme-slate - tema escuro com cinza carvão
 #  jekyll-theme-tactile - tema com fundo escuro e textura sutil
