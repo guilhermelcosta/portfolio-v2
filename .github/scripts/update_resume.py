@@ -325,25 +325,46 @@ def generate_markdown(parsed_data):
     
     return md
 
+
 def main():
-    resumes_dir = 'resumes'
-    latest_rev = get_latest_rev(resumes_dir)
-    last_processed = get_last_processed()
-    if latest_rev > last_processed:
-        pdf_file = f"resumes/resume-guilherme-costa-en-rev-{latest_rev}.pdf"
-        if os.path.exists(pdf_file):
-            text = extract_text_from_pdf(pdf_file)
-            parsed_data = parse_resume_text(text)
-            md_content = generate_markdown(parsed_data)
-            with open('index.md', 'w', encoding='utf-8') as f:
-                f.write(md_content)
-            with open('last_processed.txt', 'w') as f:
-                f.write(str(latest_rev))
-            print(f"Updated to rev-{latest_rev}")
+    """
+    Main execution flow:
+    1. Find latest resume version
+    2. Check if it's newer than last processed
+    3. Extract, parse, and convert to Markdown
+    4. Save output and update tracking file
+    """
+    latest_filename, latest_version = find_latest_resume_version(RESUMES_DIR)
+    last_processed_version = get_last_processed_version()
+    
+    if latest_version > last_processed_version:
+        if latest_filename:
+            resume_path = os.path.join(RESUMES_DIR, latest_filename)
+            
+            print(f"Processing {latest_filename} (rev-{latest_version})...")
+            
+            # Extract text from PDF
+            raw_text = extract_text_from_pdf(resume_path)
+            
+            # Parse structured data
+            parsed_resume = parse_resume_text(raw_text)
+            
+            # Generate Markdown
+            markdown_output = generate_markdown(parsed_resume)
+            
+            # Save to file
+            with open(OUTPUT_FILE, 'w', encoding='utf-8') as output_file:
+                output_file.write(markdown_output)
+            
+            # Update tracking file
+            save_processed_version(latest_version)
+            
+            print(f"Successfully updated to rev-{latest_version}")
         else:
-            print(f"PDF file for rev-{latest_rev} not found")
+            print(f"Warning: Resume file for rev-{latest_version} not found")
     else:
         print("No new resume to process")
+
 
 if __name__ == "__main__":
     main()

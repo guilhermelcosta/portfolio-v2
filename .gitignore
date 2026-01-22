@@ -115,10 +115,27 @@ fabric.properties
 # https://plugins.jetbrains.com/plugin/8053-azure-toolkit-for-intellij
 .idea/**/azureSettings.xml
 
-# Resume file
-
+# Resume files
 /portfolio-v2.iml
 /resume.txt
 /resume-guilherme-costa-*
+
+# Jekyll
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
+vendor/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Testing
+test_*.py
+*_test.py
 
 # End of https://www.toptal.com/developers/gitignore/api/intelliJ

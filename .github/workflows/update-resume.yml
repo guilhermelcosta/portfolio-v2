@@ -5,7 +5,7 @@ on:
     branches:
       - master
     paths:
-      - 'resumes/**'
+      - 'resumes/**'  # Trigger on any changes to resume files
 
 permissions:
   contents: write
@@ -14,7 +14,7 @@ permissions:
 
 concurrency:
   group: resume-update-and-deploy
-  cancel-in-progress: false
+  cancel-in-progress: false  # Ensure complete execution
 
 jobs:
   update-and-deploy:
@@ -33,15 +33,15 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y poppler-utils pandoc
 
-      - name: Run update script
+      - name: Run resume converter script
         run: python .github/scripts/update_resume.py
 
-      - name: Commit changes
+      - name: Commit generated Markdown
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
@@ -53,21 +53,21 @@ jobs:
             git push
           fi
 
-      - name: Checkout again (to get latest commit)
+      - name: Checkout latest changes
         uses: actions/checkout@v4
         with:
           ref: master
 
-      - name: Setup Pages
+      - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
 
-      - name: Build with Jekyll
+      - name: Build site with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
           source: ./
           destination: ./_site
 
-      - name: Upload artifact
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
 
       - name: Deploy to GitHub Pages
