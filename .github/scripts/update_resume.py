@@ -53,7 +53,7 @@ def parse_resume_text(text):
             if "LinkedIn" in line:
                 contact_parts.append("[LinkedIn](https://linkedin.com/in/guilhermeldcosta)")
             if "GitHub" in line:
-                contact_parts.append("[GitHub](https://github.com/guilhermeldcosta)")
+                contact_parts.append("[GitHub](https://github.com/guilhermelcosta)")
             email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', line)
             if email_match:
                 contact_parts.append(email_match.group(0))
