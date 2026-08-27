@@ -31,7 +31,7 @@ git push -u origin update/new-resume
 
 The workflow generates `index.md` on that branch and opens a pull request to `master`. Merge the PR to deploy.
 
-See [EXAMPLES.md](EXAMPLES.md) for more usage examples and naming patterns.
+See [EXAMPLES.md](EXAMPLES.md) for more usage examples and naming patterns. 
 
 ## Project Structure
 
