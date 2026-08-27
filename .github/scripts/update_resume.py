@@ -6,28 +6,12 @@ from pathlib import Path
 # Constants
 RESUMES_DIR = 'resumes'
 OUTPUT_FILE = 'index.md'
-TRACKING_FILE = 'last_processed.txt'
 
-def get_latest_rev(resumes_dir):
-    pdf_files = list(Path(resumes_dir).glob("*.pdf"))
-    revs = []
-    for f in pdf_files:
-        match = re.search(r'rev-(\d+)', f.name)
-        if match:
-            revs.append(int(match.group(1)))
-    return max(revs) if revs else 0
-
-def get_last_processed_version():
-    """Get the last processed resume version from tracking file."""
-    try:
-        with open(TRACKING_FILE, 'r') as f:
-            return int(f.read().strip())
-    except FileNotFoundError:
-        return 0
 
 def extract_text_from_pdf(pdf_path):
     result = subprocess.run(['pdftotext', pdf_path, '-'], capture_output=True, text=True)
     return result.stdout
+
 
 def clean_text(text):
     """Clean up special characters from PDF extraction."""
@@ -35,6 +19,7 @@ def clean_text(text):
     text = text.replace('–', '-')
     text = re.sub(r'[•\u2022]', '•', text)
     return text
+
 
 def parse_resume_text(text):
     """Parse resume preserving all information."""
@@ -49,7 +34,7 @@ def parse_resume_text(text):
     for i, line in enumerate(lines[:10]):
         if "Software Engineer" in line:
             title = line.strip()
-        if "LinkedIn" in line or "GitHub" in line or "@" in line or "+55" in line:
+        if "LinkedIn" in line or "GitHub" in line or "@" in line:
             if "LinkedIn" in line:
                 contact_parts.append("[LinkedIn](https://linkedin.com/in/guilhermeldcosta)")
             if "GitHub" in line:
@@ -57,9 +42,6 @@ def parse_resume_text(text):
             email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', line)
             if email_match:
                 contact_parts.append(email_match.group(0))
-            phone_match = re.search(r'\+55\s*\(\d+\)\s*\d+\s+\d+\s*\d+-\d+', line)
-            if phone_match:
-                contact_parts.append(phone_match.group(0))
 
     # Find section boundaries
     section_indices = {}
@@ -76,11 +58,11 @@ def parse_resume_text(text):
     return {
         'name': name,
         'title': title,
-        # Removed phone 
-        # 'contact': contact_parts,
+        'contact': contact_parts,
         'lines': lines,
         'section_indices': section_indices
     }
+
 
 def generate_markdown(parsed_data):
     """Generate markdown with complete information."""
@@ -353,50 +335,30 @@ def find_latest_resume_version(resumes_dir):
     return latest_filename, latest_version
 
 
-def save_processed_version(version):
-    """Save the processed version to tracking file."""
-    with open(TRACKING_FILE, 'w') as f:
-        f.write(str(version))
-
-
 def main():
     """
     Main execution flow:
-    1. Find latest resume version
-    2. Check if it's newer than last processed
-    3. Extract, parse, and convert to Markdown
-    4. Save output and update tracking file
+    1. Find the highest rev-N resume in resumes/
+    2. Extract, parse, and convert to Markdown
+    3. Save output to index.md
     """
     latest_filename, latest_version = find_latest_resume_version(RESUMES_DIR)
-    last_processed_version = get_last_processed_version()
 
-    if latest_version > last_processed_version:
-        if latest_filename:
-            resume_path = os.path.join(RESUMES_DIR, latest_filename)
+    if not latest_filename:
+        print("Nenhum arquivo de currículo encontrado em resumes/ com o padrão rev-N.")
+        return
 
-            print(f"Processing {latest_filename} (rev-{latest_version})...")
+    resume_path = os.path.join(RESUMES_DIR, latest_filename)
+    print(f"Processing {latest_filename} (rev-{latest_version})...")
 
-            # Extract text from PDF
-            raw_text = extract_text_from_pdf(resume_path)
+    raw_text = extract_text_from_pdf(resume_path)
+    parsed_resume = parse_resume_text(raw_text)
+    markdown_output = generate_markdown(parsed_resume)
 
-            # Parse structured data
-            parsed_resume = parse_resume_text(raw_text)
+    with open(OUTPUT_FILE, 'w', encoding='utf-8') as output_file:
+        output_file.write(markdown_output)
 
-            # Generate Markdown
-            markdown_output = generate_markdown(parsed_resume)
-
-            # Save to file
-            with open(OUTPUT_FILE, 'w', encoding='utf-8') as output_file:
-                output_file.write(markdown_output)
-
-            # Update tracking file
-            save_processed_version(latest_version)
-
-            print(f"Successfully updated to rev-{latest_version}")
-        else:
-            print(f"Warning: Resume file for rev-{latest_version} not found")
-    else:
-        print("No new resume to process")
+    print(f"Successfully updated to rev-{latest_version}")
 
 
 if __name__ == "__main__":
