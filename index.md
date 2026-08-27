@@ -9,7 +9,7 @@ Java \| Spring Boot \| Spring Batch \| Spring Security \| Python \| Angular \| T
 ## Experience
 
 ### NTT DATA Europe & Latam \| Remote
-**Software Engineer** \| 08/2025 - current
+**Senior Software Engineer** \| 08/2025 - current
 
 - Developed and orchestrated microservices processing approximately 1 million financial transactions daily using Spring Boot, AWS SQS, SNS, Amazon DocumentDB and Datadog
 - Implemented ETL pipelines to process approximately 1 million operations per day using AWS Glue, Spark, Python, S3, Glue Catalog, Lambda, and SQS
