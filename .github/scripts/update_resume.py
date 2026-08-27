@@ -40,12 +40,12 @@ def parse_resume_text(text):
     """Parse resume preserving all information."""
     text = clean_text(text)
     lines = [line.rstrip() for line in text.split('\n')]
-    
+
     # Extract header
     name = "Guilherme Lage da Costa"
     title = ""
     contact_parts = []
-    
+
     for i, line in enumerate(lines[:10]):
         if "Software Engineer" in line:
             title = line.strip()
@@ -60,7 +60,7 @@ def parse_resume_text(text):
             phone_match = re.search(r'\+55\s*\(\d+\)\s*\d+\s+\d+\s*\d+-\d+', line)
             if phone_match:
                 contact_parts.append(phone_match.group(0))
-    
+
     # Find section boundaries
     section_indices = {}
     for i, line in enumerate(lines):
@@ -72,11 +72,12 @@ def parse_resume_text(text):
             section_indices['Education'] = i
         elif line.strip() == 'Licenses & Certificates':
             section_indices['Licenses & Certificates'] = i
-    
+
     return {
         'name': name,
         'title': title,
-        'contact': contact_parts,
+        # Removed phone 
+        # 'contact': contact_parts,
         'lines': lines,
         'section_indices': section_indices
     }
@@ -85,13 +86,13 @@ def generate_markdown(parsed_data):
     """Generate markdown with complete information."""
     lines = parsed_data['lines']
     section_indices = parsed_data['section_indices']
-    
+
     md = f"# {parsed_data['name']}\n"
     if parsed_data['title']:
         md += f"**{parsed_data['title']}**\n\n"
     if parsed_data['contact']:
         md += " | ".join(parsed_data['contact']) + "\n\n"
-    
+
     # Skills section
     if 'Skills' in section_indices and 'Experience' in section_indices:
         md += "## Skills\n"
@@ -104,41 +105,41 @@ def generate_markdown(parsed_data):
         # Escape pipes in skills
         skills_text = skills_text.replace('|', r'\|')
         md += skills_text + "\n\n"
-    
+
     # Experience section
     if 'Experience' in section_indices and 'Education' in section_indices:
         md += "## Experience\n\n"
         i = section_indices['Experience'] + 1
         end = section_indices['Education']
-        
+
         current_company = None
         current_location = None
-        
+
         while i < end:
             line = lines[i].strip()
-            
+
             # Skip empty lines
             if not line:
                 i += 1
                 continue
-            
+
             # Check if it's a bullet point - skip for now
             if line.startswith('•'):
                 i += 1
                 continue
-            
+
             # Try to detect if this is a company name or just a position
             # Company names are usually followed by location (Remote, City) or empty line then location
             # Positions are followed by dates
             is_company = False
             temp_i = i + 1
-            
+
             # Skip empty lines to peek ahead
             while temp_i < end and not lines[temp_i].strip():
                 temp_i += 1
-            
+
             next_line = lines[temp_i].strip() if temp_i < end else ""
-            
+
             # If next non-empty line is a location indicator, this is a company
             if next_line in ['Remote', 'Belo Horizonte, MG'] or next_line.endswith(', MG'):
                 is_company = True
@@ -152,68 +153,68 @@ def generate_markdown(parsed_data):
                 if re.match(r'\d{2}/\d{4}', next_next_line):
                     # Pattern: Company -> Position -> Date
                     is_company = True
-            
+
             if is_company:
                 # This is a new company
                 current_company = line
                 i += 1
-                
+
                 # Skip empty lines
                 while i < end and not lines[i].strip():
                     i += 1
-                
+
                 # Get location
                 if i < end and (lines[i].strip() in ['Remote', 'Belo Horizonte, MG'] or lines[i].strip().endswith(', MG')):
                     current_location = lines[i].strip()
                     i += 1
                 else:
                     current_location = ""
-                
+
                 # Write company header
                 md += f"### {current_company}"
                 if current_location:
                     md += r" \| " + current_location
                 md += "\n"
-                
+
             else:
                 # This is a position (either first in company or additional)
                 position = line
                 i += 1
-                
+
                 # Skip empty lines
                 while i < end and not lines[i].strip():
                     i += 1
-                
+
                 # Get dates
                 dates = ""
                 if i < end and re.match(r'\d{2}/\d{4}', lines[i].strip()):
                     dates = lines[i].strip()
                     i += 1
-                
+
                 # Write position
                 md += f"**{position}**"
                 if dates:
                     md += " \\| " + dates
                 md += "\n\n"
-                
+
                 # Collect bullet points for this position
                 while i < end:
                     # Skip empty lines
                     while i < end and not lines[i].strip():
                         i += 1
-                    
+
                     if i >= end:
                         break
-                    
+
                     line = lines[i].strip()
-                    
+
                     # If it's a bullet point
                     if line.startswith('•'):
                         i += 1
                         # Skip empty line after bullet
                         while i < end and not lines[i].strip():
                             i += 1
-                        
+
                         # Collect the bullet text (may span multiple lines)
                         bullet_text = []
                         while i < end:
@@ -232,21 +233,21 @@ def generate_markdown(parsed_data):
                                         break
                             bullet_text.append(text_line)
                             i += 1
-                        
+
                         if bullet_text:
                             md += f"- {' '.join(bullet_text)}\n"
                     else:
                         # Not a bullet, check if it's next position or company
                         break
-                
+
                 md += "\n"
-    
+
     # Education section
     if 'Education' in section_indices and 'Licenses & Certificates' in section_indices:
         md += "## Education\n\n"
         i = section_indices['Education'] + 1
         end = section_indices['Licenses & Certificates']
-        
+
         # Find institution
         institution = ""
         location = ""
@@ -255,83 +256,83 @@ def generate_markdown(parsed_data):
         if i < end:
             institution = lines[i].strip()
             i += 1
-        
+
         while i < end and not lines[i].strip():
             i += 1
         if i < end and ('Belo Horizonte' in lines[i] or ', MG' in lines[i]):
             location = lines[i].strip()
             i += 1
-        
+
         if institution:
             md += f"### {institution}"
             if location:
                 md += " \\| " + location
             md += "\n\n"
-        
+
         # Collect degrees
         while i < end:
             line = lines[i].strip()
             if not line:
                 i += 1
                 continue
-            
+
             if line.startswith("Bachelor's degree") or line.startswith("Postgraduate") or line.startswith("Master"):
                 degree = line
                 i += 1
-                
+
                 # Skip empty lines
                 while i < end and not lines[i].strip():
                     i += 1
-                
+
                 # Get dates
                 dates = ""
                 if i < end and re.match(r'\d{2}/\d{4}', lines[i].strip()):
                     dates = lines[i].strip()
                     i += 1
-                
+
                 md += f"- **{degree}**"
                 if dates:
                     md += " \\| " + dates
                 md += "\n"
             else:
                 i += 1
-        
+
         md += "\n"
-    
+
     # Licenses & Certificates section
     if 'Licenses & Certificates' in section_indices:
         md += "## Licenses & Certificates\n\n"
         i = section_indices['Licenses & Certificates'] + 1
         end = len(lines)
-        
+
         while i < end:
             line = lines[i].strip()
             if not line:
                 i += 1
                 continue
-            
+
             # Certificate name
             if ',' not in line or (line.startswith('System') or line.startswith('Google')):
                 cert_name = line
                 i += 1
-                
+
                 # Skip empty lines
                 while i < end and not lines[i].strip():
                     i += 1
-                
+
                 # Issuer and date
                 issuer_date = ""
                 if i < end and ',' in lines[i].strip():
                     issuer_date = lines[i].strip()
                     i += 1
-                
+
                 md += f"- **{cert_name}**"
                 if issuer_date:
                     md += " \\| " + issuer_date
                 md += "\n"
             else:
                 i += 1
-    
+
     return md
 
 
@@ -340,7 +341,7 @@ def find_latest_resume_version(resumes_dir):
     pdf_files = list(Path(resumes_dir).glob("*.pdf"))
     latest_version = 0
     latest_filename = None
-    
+
     for pdf_file in pdf_files:
         match = re.search(r'rev-(\d+)', pdf_file.name)
         if match:
@@ -348,7 +349,7 @@ def find_latest_resume_version(resumes_dir):
             if version > latest_version:
                 latest_version = version
                 latest_filename = pdf_file.name
-    
+
     return latest_filename, latest_version
 
 
@@ -368,29 +369,29 @@ def main():
     """
     latest_filename, latest_version = find_latest_resume_version(RESUMES_DIR)
     last_processed_version = get_last_processed_version()
-    
+
     if latest_version > last_processed_version:
         if latest_filename:
             resume_path = os.path.join(RESUMES_DIR, latest_filename)
-            
+
             print(f"Processing {latest_filename} (rev-{latest_version})...")
-            
+
             # Extract text from PDF
             raw_text = extract_text_from_pdf(resume_path)
-            
+
             # Parse structured data
             parsed_resume = parse_resume_text(raw_text)
-            
+
             # Generate Markdown
             markdown_output = generate_markdown(parsed_resume)
-            
+
             # Save to file
             with open(OUTPUT_FILE, 'w', encoding='utf-8') as output_file:
                 output_file.write(markdown_output)
-            
+
             # Update tracking file
             save_processed_version(latest_version)
-            
+
             print(f"Successfully updated to rev-{latest_version}")
         else:
             print(f"Warning: Resume file for rev-{latest_version} not found")
